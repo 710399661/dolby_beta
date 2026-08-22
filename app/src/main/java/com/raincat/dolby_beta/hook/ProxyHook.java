@@ -136,16 +136,6 @@ public class ProxyHook {
         if (objectSSLSocketFactory == null)
             objectSSLSocketFactory = sslSocketFactoryField.get(client);
 
-        // 启动竞态修复:本地模式(proxy_server_key=false)下,如果 SCRIPT_STATUS != 1,短暂等待 Node 脚本起来(最多 ~3s);
-        // 否则启动初期所有播放请求会直连官方,拿到 403/需VIP 音源 → 无法播放。
-        boolean useLocalScript = !SettingHelper.getInstance().getSetting(SettingHelper.proxy_server_key);
-        if (useLocalScript && !ExtraHelper.getExtraDate(ExtraHelper.SCRIPT_STATUS).equals("1")) {
-            for (int i = 0; i < 10; i++) {   // 10 × 300ms = 最多 3s
-                Thread.sleep(300);
-                if (ExtraHelper.getExtraDate(ExtraHelper.SCRIPT_STATUS).equals("1")) break;
-            }
-        }
-
         if (ExtraHelper.getExtraDate(ExtraHelper.SCRIPT_STATUS).equals("1")) {
             String httpUrlHost = SettingHelper.getInstance().getSetting(SettingHelper.proxy_server_key) ?
                     SettingHelper.getInstance().getHttpProxy() : "127.0.0.1";

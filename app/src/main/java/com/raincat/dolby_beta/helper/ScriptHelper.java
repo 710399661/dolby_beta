@@ -46,35 +46,7 @@ public class ScriptHelper {
     //node 可执行文件 PATH(把 libnode.so 所在目录也加入 PATH,方便直接用 libnode.so 当命令)
     private static String nodeBinPath;
 
-    // 进程检测:优先读 /proc/$pid/cmdline(Android 上可靠,无 ps 兼容性问题),fallback 到 ps
-    private static final String[] CHECK_PROC_CMD = new String[]{
-            "for p in /proc/[0-9]*; do",
-            "  pid=${p##*/}",
-            "  if [ -r \"$p/cmdline\" ]; then",
-            "    cmd=$(cat \"$p/cmdline\" 2>/dev/null | tr '\\0' ' ')",
-            "    case \"$cmd\" in",
-            "      *libnode.so*app.js*) echo \"RUNNING:$pid:$cmd\"; exit 0;;",
-            "    esac",
-            "  fi",
-            "done",
-            "ps -ef 2>/dev/null | grep -v grep | grep 'libnode.so.*app.js' && echo 'RUNNING:ps-fallback' || true"
-    };
-
-    private static final String[] STOP_PROXY = new String[]{
-            // 先从 /proc 精确找 pid 再 kill,避免 killall 杀错其他 libnode 进程
-            "for p in /proc/[0-9]*; do",
-            "  if [ -r \"$p/cmdline\" ]; then",
-            "    cmd=$(cat \"$p/cmdline\" 2>/dev/null | tr '\\0' ' ')",
-            "    case \"$cmd\" in",
-            "      *libnode.so*app.js*)",
-            "        kill -9 \"${p##*/}\" 2>/dev/null || true",
-            "        ;;",
-            "    esac",
-            "  fi",
-            "done",
-            "killall -9 libnode.so >/dev/null 2>&1 || true",
-            "sleep 0.3"
-    };
+    private static final String[] STOP_PROXY = new String[]{"killall -9 libnode.so >/dev/null 2>&1 || true"};
 
     @SuppressLint("StaticFieldLeak")
     private static Context neteaseContext;
@@ -123,99 +95,33 @@ public class ScriptHelper {
     }
 
     public static void startScript() {
-        // 先把状态置 0(启动中),避免旧的 SCRIPT_STATUS=1 导致 ProxyHook 认为已就绪、请求发到死端口
-        ExtraHelper.setExtraDate(ExtraHelper.SCRIPT_STATUS, "0");
-
-        // 代理源参数:空格分隔的多源字符串,shell 传参时需加引号
+        stopScript();
         String original = SettingHelper.getInstance().getProxyOriginal();
-        if (original == null) original = "";
-        String quotedOriginal = "'" + original.replace("'", "'\\''") + "'";
-
-        // 端口:HTTP 和 HTTPS(通常 port 和 port+1)。如果端口被占用,简单换个端口再试(两次)
-        int portBase = SettingHelper.getInstance().getProxyPort();
-        String portArg = portBase + ":" + (portBase + 1);
-
-        // 最终启动命令:
-        // 1) 先设好环境变量(LIB + PATH);
-        // 2) 再到脚本目录;
-        // 3) 调 libnode.so app.js,出错时立即输出 ERR: 前缀便于上层捕获
+        int port = SettingHelper.getInstance().getProxyPort();
         String execCmd = String.format(
-                "cd \"%s\" && (%s && %s && export ENABLE_FLAC=\"%s\" && export MIN_BR=\"%s\" && export QQ_COOKIE=\"%s\" && export MIGU_COOKIE=\"%s\" && libnode.so app.js -a 127.0.0.1 -o %s -p %s) || echo ERR:start_failed",
+                "cd \"%s\" && %s && %s && export ENABLE_FLAC=\"%s\" && export MIN_BR=\"%s\" && export QQ_COOKIE=\"%s\" && export MIGU_COOKIE=\"%s\" && libnode.so app.js -a 127.0.0.1 -o %s -p %d:%d",
                 scriptPath,
                 nodeLibPath, nodeBinPath,
                 SettingHelper.getInstance().getSetting(SettingHelper.proxy_flac_key),
                 SettingHelper.getInstance().getSetting(SettingHelper.proxy_priority_key) ? "256000" : "96000",
                 SettingHelper.getInstance().getQqCookie(),
                 SettingHelper.getInstance().getMiguCookie(),
-                quotedOriginal,
-                portArg
+                original,
+                port, port + 1
         );
-
-        // 先检测是否已有旧进程在跑:有 → 先杀再启动,避免端口占用
-        String[] START_PROXY = new String[]{
-                // 先杀旧进程
-                String.join("\n", STOP_PROXY),
-                // 等端口释放
-                "sleep 0.5",
-                // 再启动
-                execCmd
-        };
-
-        Command start = new Command(0, START_PROXY) {
+        Command start = new Command(0, execCmd) {
             @Override
             public void commandOutput(int id, String line) {
-                // 错误识别:新版 UnblockNeteaseMusic 常见的启动失败/端口占用/源不存在
-                boolean isErr =
-                        (line != null) && (
-                                line.startsWith("ERR:") ||
-                                        (line.contains("Error") && !line.contains("handleError") && !line.contains("retry")) ||
-                                        line.contains("EADDRINUSE") ||
-                                        line.contains("Port") && (line.contains("in use") || line.contains("occupied")) ||
-                                        line.contains("module not found") ||
-                                        line.contains("Cannot find module") ||
-                                        line.contains("SyntaxError") ||
-                                        line.contains("nodename nor servname") ||
-                                        line.contains("getaddrinfo")
-                        );
-
-                if (isErr) {
-                    // 明确失败:把状态置 0,避免 ProxyHook 继续对死端口发请求
-                    ExtraHelper.setExtraDate(ExtraHelper.SCRIPT_STATUS, "0");
-                    Intent intent = new Intent(Hook.msg_send_notification);
-                    intent.putExtra("message", line);
-                    intent.putExtra("title", "脚本启动/运行错误");
+                if (line != null && line.contains("HTTP Server running")) {
                     if (neteaseContext != null)
-                        neteaseContext.sendBroadcast(intent);
-                } else if (line != null && line.contains("HTTP Server running")) {
-                    // 启动成功
-                    if (neteaseContext != null && !"1".equals(ExtraHelper.getExtraDate(ExtraHelper.SCRIPT_STATUS)))
                         Tools.showToastOnLooper(neteaseContext, "UnblockNeteaseMusic运行成功");
                     ExtraHelper.setExtraDate(ExtraHelper.SCRIPT_STATUS, "1");
-                } else if ("Killed ".equals(line) || "Killed".equals(line)) {
-                    // 被系统 OOM/内存回收杀掉 → 主开关开着的话自动重启
-                    ExtraHelper.setExtraDate(ExtraHelper.SCRIPT_STATUS, "0");
-                    if (SettingHelper.getInstance().getSetting(SettingHelper.proxy_master_key)) {
-                        try {
-                            Thread.sleep(800);
-                        } catch (InterruptedException ignored) {
-                        }
-                        startScript();
+                } else if ("RESTART".equals(line)) {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException ignored) {
                     }
-                }
-                // RESTART 状态分支已删除(现改为"先杀再启",无需依赖外层检测重启)
-            }
-
-            @Override
-            public void commandTerminated(int id, String reason) {
-                // 命令被异常终止(超时/root 收回/外部 kill):状态置 0,标记失败
-                ExtraHelper.setExtraDate(ExtraHelper.SCRIPT_STATUS, "0");
-            }
-
-            @Override
-            public void commandCompleted(int id, int exitCode) {
-                // 命令执行结束但没见到 HTTP Server running → 说明脚本没启动成功,状态置 0
-                if (!"1".equals(ExtraHelper.getExtraDate(ExtraHelper.SCRIPT_STATUS))) {
-                    ExtraHelper.setExtraDate(ExtraHelper.SCRIPT_STATUS, "0");
+                    startScript();
                 }
             }
         };
