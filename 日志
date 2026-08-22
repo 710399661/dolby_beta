@@ -1,0 +1,100 @@
+SDK: 37
+PRODUCT_NAME: popsicle
+DEVICE_NAME: popsicle
+BOARD_NAME: canoe
+SUPPORTED_ABIS: arm64-v8a
+MANUFACTURER: Xiaomi
+BRAND: Xiaomi
+MODEL: 2509FPN0BC
+
+1787432369.423 10471 12477 12477 I libc    : SetHeapTaggingLevel: tag level set to 0
+1787432369.429 10471 12477 12477 I Zygote  : Process 12477 created for com.netease.cloudmusic
+1787432369.430 10471 12477 12477 I ease.cloudmusic: Using generational CollectorTypeCC GC.
+1787432369.435 10471 12477 12477 D nativeloader: Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+1787432369.437 10471 12477 12477 I ActivityThread: Current dynamic renderEngine type=0
+1787432369.439 10471 12477 15705 D ApplicationLoaders: Returning zygote-cached class loader: /system/framework/android.test.base.jar
+1787432369.439 10471 12477 15705 D ApplicationLoaders: Returning zygote-cached class loader: /system/framework/org.apache.http.legacy.jar
+1787432369.442 10471 12477 15697 D MiuiDownscaleImpl: set override inverted scale : 1.0
+1787432369.443 10471 12477 12477 I HardwareRenderer: Process RenderPipelineType: 2
+1787432369.443 10471 12477 12477 I RENDER_TURBO: onActivityThreadCreate not in white list, pkg=com.netease.cloudmusic, renderType=2
+1787432369.451 10471 12477 15696 D AppScoutStateMachine: 12477-ScoutStateMachinecreated
+1787432369.460 10471 12477 12477 D ActivityThread: setEmbeddedParam packageName=com.netease.cloudmusic processName=com.netease.cloudmusic isEmbedded=false isIsolated=false
+1787432369.461 10471 12477 12477 D ApplicationLoaders: Returning zygote-cached class loader: /system/framework/android.test.base.jar
+1787432369.461 10471 12477 12477 D ApplicationLoaders: Returning zygote-cached class loader: /system/framework/org.apache.http.legacy.jar
+1787432382.545 10471 16821 16821 D FramePredict: FramePredict init: false
+1787432383.314 10471 12477 12477 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.netease.cloudmusic/com.netease.cloudmusic.activity.PlayListActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=218411629, downTime=218411629, phoneEventTime=1787432383313 } moveCount:0
+1787432383.314 10471 12477 12477 D VRI[PlayListActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+1787432383.426 10471 12477 12477 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.netease.cloudmusic/com.netease.cloudmusic.activity.PlayListActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=218411741, downTime=218411629, phoneEventTime=1787432383425 } moveCount:0
+1787432383.428 10471 12477 12477 D HyperViewScaleRemoteManager: performClick: view=com.netease.cloudmusic.theme.ui.CustomThemeLinearLayout{495737e VFE...CL. ...P.... 0,180-1200,360 #7f0921a3 app:id/musicListItemContainer}, parent=org.xjy.android.nova.widget.NovaRecyclerView{7206281 VFED..... ........ 0,1053-1200,3139 #7f092195 app:id/musicInfoList}
+1787432383.559 10471 12477 12477 D HyperViewScaleRemoteManager: hookStartActivity: className=com.netease.cloudmusic.activity.PlayerActivity, matchStartFromAct=false, options=null
+1787432383.654 10471 12477 12477 D Activity: Activity = ActivityInfo{36f2a05 com.netease.cloudmusic.activity.PlayerActivity}, Resume onConfigurationChanged = {1.0 460mcc11mnc [zh_CN] ldltr sw400dp w400dp h801dp 480dpi nrml long compactNeeded hdr widecg port night finger -keyb/v/h -nav/h winConfig={ mBounds=Rect(0, 0 - 1200, 2608) mAppBounds=Rect(0, 144 - 1200, 2548) mMaxBounds=Rect(0, 0 - 1200, 2608) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mActivityType=standard mAlwaysOnTop=undefined mRotation=ROTATION_0 mInSplitScreen=false letterBoxed=false foScaled=false isSpecificEmbedded=false embeddingScale=1.0 embeddingStatusBarHeight=0} s.2 fontWeightAdjustment=0/d/o themeChanged=2 themeChangedFlags=268466313 display=0 extraData = Bundle[{key_var_font_scale=50}] screenType=0/o}
+1787432383.655 10471 12477 12477 I InterceptorProxy-Helper: registerContentObserver success for com.netease.cloudmusic.activity.PlayerActivity@2de8732, uri:content_catcher_status
+1787432383.655 10471 12477 12477 I InterceptorProxy-Helper: registerContentObserver success for com.netease.cloudmusic.activity.PlayerActivity@2de8732, uri:content_catcher_global_collect_status
+1787432383.685 10471 12477 12477 D DecorViewImmersiveImpl: onAttachedToWindow. pkg: com.netease.cloudmusic
+1787432383.685 10471 12477 12477 D DecorViewImmersiveImpl: getWindowType: 1 title:com.netease.cloudmusic/com.netease.cloudmusic.activity.PlayerActivity
+1787432383.686 10471 12477 12477 D NavImmersive: NBC initiated. mBarOriginColor: 0
+1787432383.764 10471 16944 16944 W ActivityThread: handleBindApplication operation in createAppContext takes 2351ms pid: 16944 processName: com.netease.cloudmusic:mp1
+1787432383.767 10471 16944 16944 I ActivityThread: TrafficStats init done
+1787432383.770 10471 16944 16944 D MiuiNBIManagerImpl: init success, pkgName=com.netease.cloudmusic mIsNBIEnable=true mDisableVersionCode=-1 mActivityRulesSize=8
+1787432383.771 10471 16944 16944 D MiuiNBIManagerImpl: Global observers registered. fullScreenGesture=true, hideGestureLine=false
+1787432383.771 10471 16944 16944 I ActivityThread: Miui Feature Init done
+1787432383.899 10471 12477 16073 E ContentCatcherManager: failed to get ContentCatcherService.
+1787432383.899 10471 12477 16073 E ContentCatcherManager: failed to get ContentCatcherService.
+1787432384.068 10471 12477 12477 D VRI[PlayerActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+1787432384.175 10471 16944 16944 I MiResource: Start adding sharedLibAssets
+1787432384.176 10471 16944 16944 I MiResource: Updating cached ResourcesImpl for resources : android.content.res.MiuiResources@783b5a3, old impl = android.content.res.MiuiResourcesImpl@d7a286e, new impl = android.content.res.MiuiResourcesImpl@d7a286e , new paths = [/system/framework/framework-res.apk, /odm/overlay/FrameworksResTarget_Vendor.apk, /product/overlay/GmsCnConfigOverlay.apk, /product/overlay/MiuiServiceOverlay/MiuiServiceOverlay.apk, /product/overlay/framework-res__nosdcard__auto_generated_characteristics_rro.apk, /product/overlay/FrameworksResCommon_Sys.apk, /product/overlay/MiuiHomeLauncherResOverlay.apk, /product/overlay/AospFrameworkResOverlay.apk, /product/overlay/DevicesAndroidOverlay.apk, /product/overlay/VoiceAssistAndroidOverlay/VoiceAssistAndroidOverlay.apk, /product/overlay/AospFrameworkTelephonyResOverlay.apk, /system_ext/framework/framework-ext-res/framework-ext-res.apk, /product/overlay/MiuiFrameworkResOverlay.apk, /product/overlay/MiuiFrameworkTelephonyResOverlay.apk, /data/app/~~xK1LWVRQayV0oSLr2vAwzQ==/com.netease.cloudmusic-Nu_iO-gnbBf7K1mnm3wavw==/base.apk, /product/app/WebViewGoogle64/WebViewGoogle64.apk, /product/overlay/GestureLineOverlay.apk, /data/resource-cache/com.android.systemui-neutral-KdGy.frro, /data/resource-cache/com.android.systemui-accent-Qvgt.frro, /data/resource-cache/com.android.systemui-dynamic-s0nO.frro]
+1787432384.176 10471 16944 16944 I MiResource: Updating cached ResourcesImpl for resources : android.content.res.MiuiResources@16d52ad, old impl = android.content.res.MiuiResourcesImpl@d7a286e, new impl = android.content.res.MiuiResourcesImpl@d7a286e , new paths = [/system/framework/framework-res.apk, /odm/overlay/FrameworksResTarget_Vendor.apk, /product/overlay/GmsCnConfigOverlay.apk, /product/overlay/MiuiServiceOverlay/MiuiServiceOverlay.apk, /product/overlay/framework-res__nosdcard__auto_generated_characteristics_rro.apk, /product/overlay/FrameworksResCommon_Sys.apk, /product/overlay/MiuiHomeLauncherResOverlay.apk, /product/overlay/AospFrameworkResOverlay.apk, /product/overlay/DevicesAndroidOverlay.apk, /product/overlay/VoiceAssistAndroidOverlay/VoiceAssistAndroidOverlay.apk, /product/overlay/AospFrameworkTelephonyResOverlay.apk, /system_ext/framework/framework-ext-res/framework-ext-res.apk, /product/overlay/MiuiFrameworkResOverlay.apk, /product/overlay/MiuiFrameworkTelephonyResOverlay.apk, /data/app/~~xK1LWVRQayV0oSLr2vAwzQ==/com.netease.cloudmusic-Nu_iO-gnbBf7K1mnm3wavw==/base.apk, /product/app/WebViewGoogle64/WebViewGoogle64.apk, /product/overlay/GestureLineOverlay.apk, /data/resource-cache/com.android.systemui-neutral-KdGy.frro, /data/resource-cache/com.android.systemui-accent-Qvgt.frro, /data/resource-cache/com.android.systemui-dynamic-s0nO.frro]
+1787432384.176 10471 16944 16944 I MiResource: Updating cached ResourcesImpl for resources : android.content.res.MiuiResources@9b2033a, old impl = android.content.res.MiuiResourcesImpl@dd192a3, new impl = android.content.res.MiuiResourcesImpl@dd192a3 , new paths = [/system/framework/framework-res.apk, /odm/overlay/FrameworksResTarget_Vendor.apk, /product/overlay/GmsCnConfigOverlay.apk, /product/overlay/MiuiServiceOverlay/MiuiServiceOverlay.apk, /product/overlay/framework-res__nosdcard__auto_generated_characteristics_rro.apk, /product/overlay/FrameworksResCommon_Sys.apk, /product/overlay/MiuiHomeLauncherResOverlay.apk, /product/overlay/AospFrameworkResOverlay.apk, /product/overlay/DevicesAndroidOverlay.apk, /product/overlay/VoiceAssistAndroidOverlay/VoiceAssistAndroidOverlay.apk, /product/overlay/AospFrameworkTelephonyResOverlay.apk, /system_ext/framework/framework-ext-res/framework-ext-res.apk, /product/overlay/MiuiFrameworkResOverlay.apk, /product/overlay/MiuiFrameworkTelephonyResOverlay.apk, /data/user/0/com.netease.cloudmusic/cache/lspatch/origin/1130255717.apk, /product/app/WebViewGoogle64/WebViewGoogle64.apk, /product/overlay/GestureLineOverlay.apk, /data/resource-cache/com.android.systemui-neutral-KdGy.frro, /data/resource-cache/com.android.systemui-accent-Qvgt.frro, /data/resource-cache/com.android.systemui-dynamic-s0nO.frro]
+1787432384.176 10471 16944 16944 I MiResource: Updating cached ResourcesImpl for resources : android.content.res.MiuiResources@27a5ff3, old impl = android.content.res.MiuiResourcesImpl@22d4959, new impl = android.content.res.MiuiResourcesImpl@22d4959 , new paths = [/system/framework/framework-res.apk, /odm/overlay/FrameworksResTarget_Vendor.apk, /product/overlay/GmsCnConfigOverlay.apk, /product/overlay/MiuiServiceOverlay/MiuiServiceOverlay.apk, /product/overlay/framework-res__nosdcard__auto_generated_characteristics_rro.apk, /product/overlay/FrameworksResCommon_Sys.apk, /product/overlay/MiuiHomeLauncherResOverlay.apk, /product/overlay/AospFrameworkResOverlay.apk, /product/overlay/DevicesAndroidOverlay.apk, /product/overlay/VoiceAssistAndroidOverlay/VoiceAssistAndroidOverlay.apk, /product/overlay/AospFrameworkTelephonyResOverlay.apk, /system_ext/framework/framework-ext-res/framework-ext-res.apk, /product/overlay/MiuiFrameworkResOverlay.apk, /product/overlay/MiuiFrameworkTelephonyResOverlay.apk, /data/app/~~xK1LWVRQayV0oSLr2vAwzQ==/com.netease.cloudmusic-Nu_iO-gnbBf7K1mnm3wavw==/base.apk, /product/app/WebViewGoogle64/WebViewGoogle64.apk, /product/overlay/GestureLineOverlay.apk, /data/resource-cache/com.android.systemui-neutral-KdGy.frro, /data/resource-cache/com.android.systemui-accent-Qvgt.frro, /data/resource-cache/com.android.systemui-dynamic-s0nO.frro]
+1787432384.176 10471 16944 16944 I MiResource: Updating cached ResourcesImpl for resources : android.content.res.MiuiResources@52a1017, old impl = android.content.res.MiuiResourcesImpl@83da382, new impl = android.content.res.MiuiResourcesImpl@83da382 , new paths = [/system/framework/framework-res.apk, /odm/overlay/FrameworksResTarget_Vendor.apk, /product/overlay/GmsCnConfigOverlay.apk, /product/overlay/MiuiServiceOverlay/MiuiServiceOverlay.apk, /product/overlay/framework-res__nosdcard__auto_generated_characteristics_rro.apk, /product/overlay/FrameworksResCommon_Sys.apk, /product/overlay/MiuiHomeLauncherResOverlay.apk, /product/overlay/AospFrameworkResOverlay.apk, /product/overlay/DevicesAndroidOverlay.apk, /product/overlay/VoiceAssistAndroidOverlay/VoiceAssistAndroidOverlay.apk, /product/overlay/AospFrameworkTelephonyResOverlay.apk, /system_ext/framework/framework-ext-res/framework-ext-res.apk, /product/overlay/MiuiFrameworkResOverlay.apk, /product/overlay/MiuiFrameworkTelephonyResOverlay.apk, /product/app/WebViewGoogle64/WebViewGoogle64.apk, /product/app/WebViewGoogle64/WebViewGoogle64.apk, /product/overlay/GestureLineOverlay.apk, /data/resource-cache/com.android.systemui-neutral-KdGy.frro, /data/resource-cache/com.android.systemui-accent-Qvgt.frro, /data/resource-cache/com.android.systemui-dynamic-s0nO.frro]
+1787432384.213 10471 16944 16944 I DisplayManager: Implicitly registering for refresh rate
+1787432387.768 10471 12477 12477 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.netease.cloudmusic/com.netease.cloudmusic.activity.PlayerActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=218416082, downTime=218416082, phoneEventTime=1787432387766 } moveCount:0
+1787432387.768 10471 12477 12477 D VRI[PlayerActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+1787432387.878 10471 12477 12477 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.netease.cloudmusic/com.netease.cloudmusic.activity.PlayerActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=218416193, downTime=218416082, phoneEventTime=1787432387877 } moveCount:0
+1787432388.093 10471 12477 12477 D VRI[PlayerActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+1787432388.274 10471 12477 12477 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.netease.cloudmusic/com.netease.cloudmusic.activity.PlayerActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=218416585, downTime=218416585, phoneEventTime=1787432388269 } moveCount:0
+1787432388.274 10471 12477 12477 D VRI[PlayerActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+1787432388.351 10471 12477 12477 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.netease.cloudmusic/com.netease.cloudmusic.activity.PlayerActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=218416667, downTime=218416585, phoneEventTime=1787432388350 } moveCount:2
+1787432388.352 10471 12477 12477 D HyperViewScaleRemoteManager: performClick: view=com.netease.cloudmusic.ui.PlayerPageImageView{6cc7f67 VFED..C.. ...P.... 495,29-705,239 #7f092705 app:id/playBtn}, parent=android.widget.LinearLayout{a989042 VFE...C.. ........ 0,68-1200,358 #7f0931ec app:id/songPlayOpContainer}
+1787432393.681 10471 12477 12477 D HWUI    : ImageDecoder_nDecodeBitmap: width = 84, height = 84, encodedFormat = 4
+1787432394.390 10471 16944 18428 I LSPatch : Manager binder received
+1787432394.389 10471 12477 18425 I LSPatch : Manager binder received
+1787432394.390 10471 16030 18429 I LSPatch : Manager binder received
+1787432394.390 10471 16821 18427 I LSPatch : Manager binder received
+1787432394.993 10471 12477 12477 I HandWritingStubImpl: refreshLastKeyboardType: 1
+1787432394.993 10471 12477 12477 I HandWritingStubImpl: getCurrentKeyboardType: 1
+1787432394.994 10471 12477 12477 D InsetsController: hide(ime())
+1787432394.994 10471 12477 12477 I ImeTracker: com.netease.cloudmusic:697ef4c8: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+1787432397.110 10471 12477 12477 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.netease.cloudmusic/com.netease.cloudmusic.activity.PlayerActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=218425425, downTime=218425425, phoneEventTime=1787432397109 } moveCount:0
+1787432397.111 10471 12477 12477 D VRI[PlayerActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+1787432397.192 10471 12477 12477 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.netease.cloudmusic/com.netease.cloudmusic.activity.PlayerActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=218425506, downTime=218425425, phoneEventTime=1787432397190 } moveCount:0
+1787432397.193 10471 12477 12477 D HyperViewScaleRemoteManager: performClick: view=com.netease.cloudmusic.ui.PlayerPageImageView{6cc7f67 VFED..C.. ...P.... 495,29-705,239 #7f092705 app:id/playBtn}, parent=android.widget.LinearLayout{a989042 VFE...C.. ........ 0,68-1200,358 #7f0931ec app:id/songPlayOpContainer}
+1787432397.196 10471 12477 12477 D HWUI    : ImageDecoder_nDecodeBitmap: width = 210, height = 210, encodedFormat = 4
+1787432397.196 10471 16030 16724 D NBLOG   : log is 2026-08-23 04:59:57.196 16030-16724 D/CloudMusicNativePlayer: setVolume(0.100000)
+1787432397.196 10471 16030 16724 D android.media.AudioTrack: setStereoVolume setParameters is 0.1, rightVolume is 0.1, isMuted is false, mIsLastMute is true, mNeedNotifyedNative is false
+1787432397.196 10471 16030 16724 D AudioTrackImpl: setMediaSetMute(1578): Parameter media_set_track_muted is 0 return
+1787432397.196 10471 16030 16724 I AudioTrackImpl: before scaleVolumeForVideo L:0.100000 R:0.100000 and the pakage is com.netease.cloudmusic
+1787432397.197 10471 16030 16724 D AudioTrack: AudioTrack::setVolume L:0.100000 R:0.100000 sessionid=10361
+1787432397.197 10471 16030 16724 D BatteryNotifier: batteryHandler::send audio track volume update msg! 10471, 16030, 10361
+1787432397.197 10471 16030 16724 D AudioTrack: AudioTrack::noteTrackVolumeChange L:0.100000 R:0.100000 old L:0.000000 R:0.000000 sessionid=10361
+1787432397.197 10471 16030 16724 D NBLOG   : log is 2026-08-23 04:59:57.197 16030-16724 D/CloudMusicNativePlayer: setVolume(0.100000)
+1787432397.197 10471 12477 12477 D HWUI    : ImageDecoder_nDecodeBitmap: width = 210, height = 210, encodedFormat = 4
+1787432397.197 10471 16030 16724 W AudioManager: Use of stream types is deprecated for operations other than volume control
+1787432397.197 10471 16030 16724 W AudioManager: See the documentation of requestAudioFocus() for what to use instead with android.media.AudioAttributes to qualify your playback use case
+1787432397.200 10471 16030 17574 D BatteryNotifier: BatteryNotifier::update TrackVolume to power insight! 10471, 16030, 10361, volume 0.100000 0.100000
+1787432397.204 10471 16030 16724 D NBLOG   : log is 2026-08-23 04:59:57.204 16030-16724 D/CloudMusicNativePlayer: call func:AudioPlayer_getPlayState
+1787432397.204 10471 16030 16724 W AudioManager: Use of stream types is deprecated for operations other than volume control
+1787432397.204 10471 16030 16724 W AudioManager: See the documentation of requestAudioFocus() for what to use instead with android.media.AudioAttributes to qualify your playback use case
+1787432397.206 10471 16030 16724 D NBLOG   : log is 2026-08-23 04:59:57.206 16030-16724 D/CloudMusicNativePlayer: call func:AudioPlayer_start
+1787432397.206 10471 16030 16724 D NBLOG   : log is 2026-08-23 04:59:57.206 16030-16724 D/CloudMusicNativePlayer: Player Play!
+1787432397.206 10471 16030 16724 D NBLOG   : log is 2026-08-23 04:59:57.206 16030-16724 D/CloudMusicNativePlayer: Player Play finish!
+1787432397.206 10471 16030 17277 D NBLOG   : log is 2026-08-23 04:59:57.206 16030-17277 D/CloudMusicNativePlayer: DoPlay (5)!
+1787432397.206 10471 16030 17277 D NBLOG   : log is 2026-08-23 04:59:57.206 16030-17277 D/CloudMusicNativePlayer: AudioTrack(1): Play(1)
+1787432397.206 10471 16030 17277 D NBLOG   : log is 2026-08-23 04:59:57.206 16030-17277 D/CloudMusicNativePlayer: DoPlay Finish!
+1787432397.206 10471 16030 17548 I AudioTrack: start(1578): prior state:STATE_PAUSED packageName: com.netease.cloudmusic
+1787432397.214 10471 16030 17548 D AudioRepeatStartCheck: [AudioRepeatStartStopCheck], enter: uid = 10471, session = 10361, uidnowTime = 1787432386
+1787432397.214 10471 16030 17548 D AudioRepeatStartCheck: [AudioRepeatStartStopCheck] isAnomaly = 0
+1787432397.215 10471 16030 17621 I AudioTrackImpl: before scaleVolumeForVideo L:0.100000 R:0.100000 and the pakage is com.netease.cloudmusic
+1787432397.215 10471 16030 17621 D AudioTrack: AudioTrack::setVolume L:0.100000 R:0.100000 sessionid=10361
+1787432397.216 10471 16030 16724 D MusicMessageHandler: setPlaybackState() called with: state = [1]
+1787432397.218 10471 16030 17621 D AudioTrack: onAudioDeviceUpdate AudioPortDebug[ID:00000003] deviceType:AUDIO_DEVICE_OUT_SPEA
