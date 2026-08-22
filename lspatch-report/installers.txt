@@ -1,0 +1,40 @@
+Can request installs: false
+
+Handles INSTALL_PACKAGE of content://lspatch.example/apk:
+  com.miui.packageinstaller/com.miui.packageInstaller.InstallStart enabled=true
+Handles INSTALL_PACKAGE of file:///apk:
+  com.miui.packageinstaller/com.miui.packageInstaller.InstallStart enabled=true
+Handles VIEW of content://lspatch.example/apk:
+  com.miui.packageinstaller/com.miui.packageInstaller.InstallStart enabled=true
+  bin.mt.plus/bin.mt.plus.OpenFileActivity enabled=true
+  cn.wps.moffice_eng/cn.wps.moffice.documentmanager.PreStartActivity2 enabled=true
+  com.absinthe.libchecker/com.absinthe.libchecker.features.applist.detail.ui.ApkDetailActivity enabled=true
+  com.ai.assistance.operit/com.ai.assistance.operit.ui.main.MainActivity enabled=true
+  com.alicloud.databox/com.alicloud.databox.inwardshare.InwardShareHandlerActivity enabled=true
+  com.deepseek.chat/com.deepseek.chat.ShareProxyActivity enabled=true
+  com.mfcloudcalculate.networkdisk/com.mfcloudcalculate.networkdisk.activity.LauncherActivity enabled=true
+  com.quark.browser/com.ucpro.file enabled=true
+  com.quark.browser/com.ucpro.mutual_sendtopc enabled=true
+  com.quark.browser/com.ucpro.apk_installer enabled=true
+  com.quark.browser/com.ucpro.apk_installer_logo enabled=true
+  org.lsposed.lspatch/org.lsposed.lspatch.ui.activity.MainActivity enabled=true
+Handles VIEW of file:///apk:
+  com.miui.packageinstaller/com.miui.packageInstaller.InstallStart enabled=true
+  bin.mt.plus/bin.mt.plus.OpenFileActivity enabled=true
+  cn.wps.moffice_eng/cn.wps.moffice.documentmanager.PreStartActivity2 enabled=true
+  com.ai.assistance.operit/com.ai.assistance.operit.ui.main.MainActivity enabled=true
+  com.alicloud.databox/com.alicloud.databox.inwardshare.InwardShareHandlerActivity enabled=true
+  com.mfcloudcalculate.networkdisk/com.mfcloudcalculate.networkdisk.activity.LauncherActivity enabled=true
+  com.quark.browser/com.ucpro.file enabled=true
+  com.quark.browser/com.ucpro.mutual_sendtopc enabled=true
+  com.quark.browser/com.ucpro.apk_installer enabled=true
+  com.quark.browser/com.ucpro.apk_installer_logo enabled=true
+  org.lsposed.lspatch/org.lsposed.lspatch.ui.activity.MainActivity enabled=true
+Verifies shell installs: true
+
+Handles CONFIRM_INSTALL:
+  com.miui.packageinstaller/com.miui.packageInstaller.InstallStart enabled=true
+Known installer packages:
+  com.android.packageinstaller: not installed
+  com.google.android.packageinstaller: not installed
+  com.android.permissioncontroller: installed 33 system image, enabledSetting=0, appEnabled=true

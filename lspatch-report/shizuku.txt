@@ -1,0 +1,9 @@
+Granted: true
+Binder available: true
+Server API: 13
+Server uid: 2000
+Shell service bound: true
+
+Failures: 1
+
+[Shell] NotGranted: Shizuku is running but has not granted LSPatch access

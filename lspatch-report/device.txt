@@ -1,0 +1,7 @@
+LSPatch: 1.1 (487)
+Xposed API: 102
+Vector: canary-3106 (7306) e00c5c5038bbcc14e0b382ab893301d6993e6989
+Android: 17 (API 37)
+ABI: arm64-v8a
+Device: Xiaomi 2509FPN0BC
+Fingerprint: Xiaomi/popsicle/popsicle:17/CP2A.260605.016/OS4.0.0.20.XPBCNXM:user/release-keys
