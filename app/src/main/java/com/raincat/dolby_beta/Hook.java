@@ -72,7 +72,10 @@ public class Hook {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         final Context context = (Context) param.thisObject;
-                        final int versionCode = context.getPackageManager().getPackageInfo(PACKAGE_NAME, 0).versionCode;
+                        // PackageInfo.versionCode 在 API 28+ deprecated,改用 getLongVersionCode();保持 int 兼容避免修改所有 Hook 构造函数参数类型
+                        android.content.pm.PackageInfo pi = context.getPackageManager().getPackageInfo(PACKAGE_NAME, 0);
+                        final long vcLong = Build.VERSION.SDK_INT >= 28 ? pi.getLongVersionCode() : pi.versionCode;
+                        final int versionCode = (int) (vcLong & 0x7fffffff);
                         //初始化仓库
                         ExtraHelper.init(context);
                         //初始化设置
@@ -142,7 +145,8 @@ public class Hook {
                             IntentFilter intentFilter = new IntentFilter();
                             intentFilter.addAction(msg_play_process_init_finish);
                             intentFilter.addAction(msg_send_notification);
-                            context.registerReceiver(new BroadcastReceiver() {
+                            // 模块内部主进程/play 进程通信,同 UID,targetSdk>=34(Android 14+)需显式声明 RECEIVER_NOT_EXPORTED,否则 SecurityException
+                            BroadcastReceiver innerReceiver = new BroadcastReceiver() {
                                 @Override
                                 public void onReceive(Context c, Intent intent) {
                                     if (msg_play_process_init_finish.equals(intent.getAction())) {
@@ -157,13 +161,19 @@ public class Hook {
                                         XposedBridge.log(intent.getStringExtra("title") + "：" + intent.getStringExtra("message"));
                                     }
                                 }
-                            }, intentFilter);
+                            };
+                            if (Build.VERSION.SDK_INT >= 34) {
+                                context.registerReceiver(innerReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
+                            } else {
+                                context.registerReceiver(innerReceiver, intentFilter);
+                            }
                         } else if (processName.equals(PACKAGE_NAME + ":play") && SettingHelper.getInstance().getSetting(SettingHelper.master_key)) {
                             //音源代理
                             new ProxyHook(context, true);
                             IntentFilter intentFilter = new IntentFilter();
                             intentFilter.addAction(msg_hook_play_process);
-                            context.registerReceiver(new BroadcastReceiver() {
+                            // 模块内部主进程/play 进程通信,同 UID,targetSdk>=34(Android 14+)需显式声明 RECEIVER_NOT_EXPORTED
+                            BroadcastReceiver playReceiver = new BroadcastReceiver() {
                                 @Override
                                 public void onReceive(Context c, Intent intent) {
                                     if (msg_hook_play_process.equals(intent.getAction())) {
@@ -173,7 +183,12 @@ public class Hook {
                                         });
                                     }
                                 }
-                            }, intentFilter);
+                            };
+                            if (Build.VERSION.SDK_INT >= 34) {
+                                context.registerReceiver(playReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
+                            } else {
+                                context.registerReceiver(playReceiver, intentFilter);
+                            }
                             context.sendBroadcast(new Intent(msg_play_process_init_finish));
                         }
                     }

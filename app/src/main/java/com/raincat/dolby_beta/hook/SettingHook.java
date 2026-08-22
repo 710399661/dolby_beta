@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -227,7 +228,12 @@ public class SettingHook {
                 }
             }
         };
-        context.registerReceiver(broadcastReceiver, intentFilter);
+        // 模块内部设置 UI 广播,同 UID,targetSdk>=34(Android 14+)需显式声明 RECEIVER_NOT_EXPORTED,否则 SecurityException
+        if (Build.VERSION.SDK_INT >= 34) {
+            context.registerReceiver(broadcastReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            context.registerReceiver(broadcastReceiver, intentFilter);
+        }
     }
 
     private void showSettingDialog(final Context context) {
