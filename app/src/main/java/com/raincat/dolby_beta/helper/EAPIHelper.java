@@ -2,6 +2,7 @@ package com.raincat.dolby_beta.helper;
 
 import android.text.TextUtils;
 
+import com.google.gson.Gson;
 import com.ndktools.javamd5.core.MD5;
 import com.raincat.dolby_beta.model.CloudHeader;
 import com.raincat.dolby_beta.net.Http;
