@@ -206,8 +206,14 @@ public class ScriptHelper {
             }
 
             @Override
-            public void commandTerminated(int id, int exitCode) {
-                // 命令终止但没见到 HTTP Server running:状态置 0,标记失败
+            public void commandTerminated(int id, String reason) {
+                // 命令被异常终止(超时/root 收回/外部 kill):状态置 0,标记失败
+                ExtraHelper.setExtraDate(ExtraHelper.SCRIPT_STATUS, "0");
+            }
+
+            @Override
+            public void commandCompleted(int id, int exitCode) {
+                // 命令执行结束但没见到 HTTP Server running → 说明脚本没启动成功,状态置 0
                 if (!"1".equals(ExtraHelper.getExtraDate(ExtraHelper.SCRIPT_STATUS))) {
                     ExtraHelper.setExtraDate(ExtraHelper.SCRIPT_STATUS, "0");
                 }
