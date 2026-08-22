@@ -1,11 +1,14 @@
 apply plugin: 'com.android.library'
 
 android {
-  compileSdkVersion 29
-  buildToolsVersion '29.0.3'
+  // AGP 8+ 要求 namespace 在 build.gradle 声明,替代 manifest 的 package 属性
+  namespace "net.androidwing.hotxposed"
+
+  // 与 app 模块保持一致:API 37
+  compileSdk 37
   defaultConfig {
-    minSdkVersion 14
-    targetSdkVersion 29
+    minSdk 14
+    targetSdk 37
   }
 
   buildTypes {
@@ -15,7 +18,8 @@ android {
     }
   }
 
-  lintOptions {
+  // AGP 9 已移除 lintOptions,改用 lint
+  lint {
     abortOnError false
   }
 }

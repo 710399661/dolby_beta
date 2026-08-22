@@ -1,21 +1,23 @@
 buildscript {
     repositories {
-        maven { url "https://maven.aliyun.com/nexus/content/repositories/jcenter/" }
-        mavenCentral()
-        jcenter()
+        // buildscript 仅需 AGP 及其传递依赖,均来自 google maven;勿用 jcenter 镜像,否则其残留的 pom(缺 jar)会污染依赖归属
+        maven { url "https://maven.aliyun.com/repository/google" }
+        maven { url "https://maven.aliyun.com/repository/public" }
         google()
+        mavenCentral()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:4.0.2"
+        // AGP 9.2.1:支持 compileSdk 37(API 37),需 Gradle 9.4+ 与 JDK 17
+        classpath "com.android.tools.build:gradle:9.2.1"
     }
 }
 
 allprojects {
     repositories {
         maven { url "https://maven.aliyun.com/nexus/content/repositories/jcenter/" }
-        mavenCentral()
-        jcenter()
+        maven { url "https://maven.aliyun.com/repository/public" }
         google()
+        mavenCentral()
         flatDir {
             dirs 'libs'
         }
