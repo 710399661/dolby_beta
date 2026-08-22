@@ -53,13 +53,37 @@ public class EAPIHook {
                 if (path.contains("song/enhance/player/url")) {
                     original = EAPIHelper.modifyPlayer(original);
                 } else if (path.contains("song/enhance/download/url")) {
-                    JSONObject jsonObject = new JSONObject(original);
-                    JSONObject object = jsonObject.getJSONObject("data");
-                    JSONArray array = new JSONArray();
-                    array.put(object);
-                    jsonObject.put("data", array);
-                    original = EAPIHelper.modifyPlayer(jsonObject.toString())
-                            .replace("[", "").replace("]", "");
+                    // download/url 的 data 是单个 object,不是 array。不要强行转 array 过一遍 player 再
+                    // 用 replace("[","") 剥括号 — replace 会干掉全 JSON 里的 [ ](包括 URL、其他数组),
+                    // 很容易破坏结构。这里直接对单个 data object 做与 player 同等的透明处理:
+                    // 保留原服务端所有字段,不硬改 fee/flag,保留 url query param,补缺失的 type。
+                    try {
+                        JSONObject jsonObject = new JSONObject(original);
+                        JSONObject song = jsonObject.optJSONObject("data");
+                        if (song != null) {
+                            int flag = song.optInt("flag", 0);
+                            if ((flag & 0x8) == 0) {   // 非云盘歌曲
+                                String url = song.optString("url");
+                                int code = song.optInt("code");
+                                if (!TextUtils.isEmpty(url) && code == 200) {
+                                    // 补缺失 type/encodeType,与 modifyPlayer 逻辑对齐
+                                    String type = EAPIHelper.inferTypeFromUrl(url);
+                                    if (type != null) {
+                                        if (song.isNull("type") || TextUtils.isEmpty(song.optString("type"))) {
+                                            song.put("type", type);
+                                        }
+                                        if (song.isNull("encodeType") || TextUtils.isEmpty(song.optString("encodeType"))) {
+                                            song.put("encodeType", type);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        original = jsonObject.toString();
+                    } catch (Exception e) {
+                        // 处理失败时回吐原字符串,避免我们自己的 bug 让下载链路崩
+                        e.printStackTrace();
+                    }
                 } else if (path.contains("v1/playlist/manipulate/tracks")) {
                     original = EAPIHelper.modifyManipulate(ClassHelper.HttpParams.getParams(context, eapi), original);
                 } else if (path.contains("song/like")) {

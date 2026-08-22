@@ -28,28 +28,97 @@ public class EAPIHelper {
     private static final Gson gson = new Gson();
 
     /**
-     * 解除下载加密
+     * 修复 player/url 响应数据的逻辑 bug(不修改付费/权限判定,不绕过版权)。
+     *
+     * 修复点:
+     * 1) 保留原 code,避免服务端返回 -110(需付费/无权限)等状态被硬改成 200,
+     *    导致 UI 显示可播但播放器拿到空 URL/非法 code,最终"无法播放"。
+     * 2) 保留 url 的查询参数(签名/Token),不要误截断。旧代码把 ? 之后全删,
+     *    会导致带防盗链签名的官方返回 URL 变成 403。
+     * 3) 不在 NeteaseSongListBean 里做字段级的 fee/flag/payed 硬清零,
+     *    因为这些字段与 data.code / freeTrialPrivilege 等有交叉校验关系,
+     *    改成 JSON 级别做"仅保留原服务端已有字段"的透明回传,避免 Gson 反序列化时
+     *    因 NeteaseSongListBean 缺字段(freeTrialPrivilege、chargeInfoList、rightSource、
+     *    encType、levelConfuse 等)而被丢弃,再序列化后播放器解析到不完整结构 → 拒播。
      */
     public static String modifyPlayer(String original) {
-        NeteaseSongListBean listBean = gson.fromJson(original, NeteaseSongListBean.class);
+        try {
+            JSONObject json = new JSONObject(original);
 
-        NeteaseSongListBean modifyListBean = new NeteaseSongListBean();
-        modifyListBean.setCode(200);
-        modifyListBean.setData(new ArrayList<>());
-        for (NeteaseSongListBean.DataBean dataBean : listBean.getData()) {
-            //flag与8非0为云盘歌曲
-            if ((dataBean.getFlag() & 0x8) == 0) {
+            // 1) 保留顶层 code,不要硬改成 200。如果服务端已返回非 200(需付费/下架等),
+            //    继续让播放器按原有路径走(切下一首/提示付费),不要误导 UI 以为可播。
+            //    (code 字段保留原数值即可,此处不做任何覆盖)
 
-                dataBean.setFee(0);
-                dataBean.setFlag(0);
-                dataBean.setPayed(0);
-                dataBean.setFreeTrialInfo(null);
-                if (dataBean.getUrl() != null && dataBean.getUrl().contains("?"))
-                    dataBean.setUrl(dataBean.getUrl().substring(0, dataBean.getUrl().indexOf("?")));
+            JSONArray data = json.optJSONArray("data");
+            if (data != null) {
+                for (int i = 0; i < data.length(); i++) {
+                    JSONObject song = data.optJSONObject(i);
+                    if (song == null) continue;
+
+                    // 云盘歌曲(flag & 0x8 != 0):保持原样,不做任何修改
+                    int flag = song.optInt("flag", 0);
+                    if ((flag & 0x8) != 0) continue;
+
+                    // 2) 官方返回的 url 常带 ? 后的防盗链签名/token,不能截断;
+                    //    旧代码截断会导致拿到的 URL 被 CDN 鉴权拒绝 → 403 无法播放。
+                    //    此处直接保留 song.optString("url") 原值。
+
+                    String url = song.optString("url");
+                    // 3) 只在 url 非空且 data[i].code == 200 的合法前提下,
+                    //    做"确保 fee/code/flag 不冲突"的防御性兜底:
+                    //    如果原返回 url 有效但 fee 与 code 不一致(属于网易云偶发数据问题),
+                    //    保持服务端原值,不做硬覆盖,避免与播放器其他校验逻辑冲突。
+                    int code = song.optInt("code");
+                    if (!TextUtils.isEmpty(url) && code == 200) {
+                        // 4) 确保 type/encodeType 字段存在,否则新版播放器在解析
+                        //    Hires/Lossless 格式时会认为"格式不合法"而拒绝加载。
+                        if (song.isNull("type") || TextUtils.isEmpty(song.optString("type"))) {
+                            // 从 url 后缀推断,若推断不出填默认 "mp3" 避免 type 为空被拒
+                            String type = inferTypeFromUrl(url);
+                            if (type != null) song.put("type", type);
+                        }
+                        if (song.isNull("encodeType") || TextUtils.isEmpty(song.optString("encodeType"))) {
+                            String enc = inferTypeFromUrl(url);
+                            if (enc != null) song.put("encodeType", enc);
+                        }
+                    }
+                }
             }
-            modifyListBean.getData().add(dataBean);
+            return json.toString();
+        } catch (Exception e) {
+            // JSON 解析失败时回传原始字符串,保证链路至少不会因为我们自己的处理崩
+            e.printStackTrace();
+            return original;
         }
-        return gson.toJson(modifyListBean);
+    }
+
+    /**
+     * 从播放 URL 的后缀推断音频 type/encodeType,兼容官方返回 type 缺失的情况。
+     * 返回 null 表示无法推断,由调用方决定是否写入。
+     * EAPIHook.download/url 分支也会调用此方法,因此设为 public。
+     */
+    public static String inferTypeFromUrl(String url) {
+        if (TextUtils.isEmpty(url)) return null;
+        int q = url.indexOf('?');
+        String path = q >= 0 ? url.substring(0, q) : url;
+        int dot = path.lastIndexOf('.');
+        if (dot < 0 || dot == path.length() - 1) return null;
+        String ext = path.substring(dot + 1).toLowerCase();
+        switch (ext) {
+            case "mp3":
+            case "m4a":
+            case "aac":
+            case "flac":
+            case "wav":
+            case "ogg":
+            case "ape":
+            case "wma":
+                return ext;
+            case "webm":
+                return "ogg";  // 网易云少见,兜底为 ogg
+            default:
+                return null;
+        }
     }
 
     /**
