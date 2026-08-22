@@ -64,18 +64,20 @@ public class ProxyHook {
         hookAllConstructors(realCallClass, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                if (param.args.length == 3) {
-                    Object client = param.args[0];
-                    Object request = param.args[1];
+                // 兼容两种 RealCall constructor:
+                // OkHttp 3.x: RealCall(OkHttpClient client, Request request, boolean forWebSocket) → args.length == 3
+                // OkHttp 4.x+: RealCall(OkHttpClient client, Request request) → args.length == 2
+                if (param.args.length != 3 && param.args.length != 2) return;
+                Object client = param.args[0];
+                Object request = param.args[1];
 
-                    Field urlField = request.getClass().getDeclaredField(fieldHttpUrl);
-                    urlField.setAccessible(true);
-                    Object urlObj = urlField.get(request);
-                    for (String url : whiteUrlList) {
-                       if (urlObj.toString().contains(url)) {
-                            setProxy(context, client);
-                            break;
-                        }
+                Field urlField = request.getClass().getDeclaredField(fieldHttpUrl);
+                urlField.setAccessible(true);
+                Object urlObj = urlField.get(request);
+                for (String url : whiteUrlList) {
+                    if (urlObj.toString().contains(url)) {
+                        setProxy(context, client);
+                        break;
                     }
                 }
             }
@@ -133,6 +135,16 @@ public class ProxyHook {
             objectProxy = proxyField.get(client);
         if (objectSSLSocketFactory == null)
             objectSSLSocketFactory = sslSocketFactoryField.get(client);
+
+        // 启动竞态修复:本地模式(proxy_server_key=false)下,如果 SCRIPT_STATUS != 1,短暂等待 Node 脚本起来(最多 ~3s);
+        // 否则启动初期所有播放请求会直连官方,拿到 403/需VIP 音源 → 无法播放。
+        boolean useLocalScript = !SettingHelper.getInstance().getSetting(SettingHelper.proxy_server_key);
+        if (useLocalScript && !ExtraHelper.getExtraDate(ExtraHelper.SCRIPT_STATUS).equals("1")) {
+            for (int i = 0; i < 10; i++) {   // 10 × 300ms = 最多 3s
+                Thread.sleep(300);
+                if (ExtraHelper.getExtraDate(ExtraHelper.SCRIPT_STATUS).equals("1")) break;
+            }
+        }
 
         if (ExtraHelper.getExtraDate(ExtraHelper.SCRIPT_STATUS).equals("1")) {
             String httpUrlHost = SettingHelper.getInstance().getSetting(SettingHelper.proxy_server_key) ?

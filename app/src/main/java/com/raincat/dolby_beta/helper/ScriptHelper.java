@@ -90,9 +90,15 @@ public class ScriptHelper {
     }
 
     public static void startScript() {
+        // Bug 修复:proxy_original 是空格分隔的多源字符串(如默认 "pyncmd kuwo"),作为 -o 参数时必须加引号,
+        // 否则 shell 把第二个源及之后的当作未知位置参数,导致 UnblockNeteaseMusic 报错或只启用第一个源。
+        String original = SettingHelper.getInstance().getProxyOriginal();
+        if (original == null) original = "";
+        // 用单引号包裹并转义内部单引号(若用户输入了),兼容多源
+        String quotedOriginal = "'" + original.replace("'", "'\\''") + "'";
         String script = String.format("export ENABLE_FLAC=%s&&export MIN_BR=%s&&export QQ_COOKIE=\"%s\"&&export MIGU_COOKIE=\"%s\"&&libnode.so app.js -a 127.0.0.1 -o %s -p %s",
                 SettingHelper.getInstance().getSetting(SettingHelper.proxy_flac_key), SettingHelper.getInstance().getSetting(SettingHelper.proxy_priority_key) ? "256000" : "96000",
-                SettingHelper.getInstance().getQqCookie(),SettingHelper.getInstance().getMiguCookie(),SettingHelper.getInstance().getProxyOriginal(), SettingHelper.getInstance().getProxyPort() + ":" + (SettingHelper.getInstance().getProxyPort() + 1));
+                SettingHelper.getInstance().getQqCookie(), SettingHelper.getInstance().getMiguCookie(), quotedOriginal, SettingHelper.getInstance().getProxyPort() + ":" + (SettingHelper.getInstance().getProxyPort() + 1));
 
         String[] START_PROXY = new String[]{"node=$(ps -ef |grep \"libnode.so app.js\" |grep -v grep)",
                 "if [ ! \"$node\" ]; then",
