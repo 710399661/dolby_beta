@@ -41,13 +41,40 @@ public class ScriptHelper {
     public static String modulePath;
     //脚本路径
     private static String scriptPath;
-    //node路径
+    //node 动态库所在目录列表(实际生效使用 LD_LIBRARY_PATH,不是 PATH)
     private static String nodeLibPath;
+    //node 可执行文件 PATH(把 libnode.so 所在目录也加入 PATH,方便直接用 libnode.so 当命令)
+    private static String nodeBinPath;
 
-    private static final String[] STOP_PROXY = new String[]{"node=$(ps -ef |grep \"libnode.so app.js\" |grep -v grep)",
-            "if [ -n \"$node\" ]; then",
-            "killall -9 libnode.so >/dev/null 2>&1",
-            "fi"};
+    // 进程检测:优先读 /proc/$pid/cmdline(Android 上可靠,无 ps 兼容性问题),fallback 到 ps
+    private static final String[] CHECK_PROC_CMD = new String[]{
+            "for p in /proc/[0-9]*; do",
+            "  pid=${p##*/}",
+            "  if [ -r \"$p/cmdline\" ]; then",
+            "    cmd=$(cat \"$p/cmdline\" 2>/dev/null | tr '\\0' ' ')",
+            "    case \"$cmd\" in",
+            "      *libnode.so*app.js*) echo \"RUNNING:$pid:$cmd\"; exit 0;;",
+            "    esac",
+            "  fi",
+            "done",
+            "ps -ef 2>/dev/null | grep -v grep | grep 'libnode.so.*app.js' && echo 'RUNNING:ps-fallback' || true"
+    };
+
+    private static final String[] STOP_PROXY = new String[]{
+            // 先从 /proc 精确找 pid 再 kill,避免 killall 杀错其他 libnode 进程
+            "for p in /proc/[0-9]*; do",
+            "  if [ -r \"$p/cmdline\" ]; then",
+            "    cmd=$(cat \"$p/cmdline\" 2>/dev/null | tr '\\0' ' ')",
+            "    case \"$cmd\" in",
+            "      *libnode.so*app.js*)",
+            "        kill -9 \"${p##*/}\" 2>/dev/null || true",
+            "        ;;",
+            "    esac",
+            "  fi",
+            "done",
+            "killall -9 libnode.so >/dev/null 2>&1 || true",
+            "sleep 0.3"
+    };
 
     @SuppressLint("StaticFieldLeak")
     private static Context neteaseContext;
@@ -74,9 +101,15 @@ public class ScriptHelper {
             Tools.shell(auth);
             ExtraHelper.setExtraDate(ExtraHelper.APP_VERSION, BuildConfig.VERSION_CODE);
         }
-        if (TextUtils.isEmpty(nodeLibPath)) {
-            nodeLibPath = TextUtils.isEmpty(modulePath) ? "" : modulePath.substring(0, modulePath.lastIndexOf('/'));
-            nodeLibPath = "export PATH=$PATH:" + nodeLibPath + "/lib/arm64:" + modulePath + "!/lib/arm64-v8a:" + context.getApplicationInfo().nativeLibraryDir;
+        if (TextUtils.isEmpty(nodeLibPath) || TextUtils.isEmpty(nodeBinPath)) {
+            String base = TextUtils.isEmpty(modulePath) ? "" : modulePath.substring(0, modulePath.lastIndexOf('/'));
+            // libnode.so 是 .so,Android 动态链接器找 .so 依赖的是 LD_LIBRARY_PATH,不是 PATH
+            String ld1 = base + "/lib/arm64";
+            String ld2 = modulePath + "!/lib/arm64-v8a";
+            String ld3 = context.getApplicationInfo().nativeLibraryDir;
+            nodeLibPath = "export LD_LIBRARY_PATH=\"" + ld1 + ":" + ld2 + ":" + ld3 + ":$LD_LIBRARY_PATH\"";
+            // PATH 也加一份,方便直接把 libnode.so 当可执行文件调用(有些 ROM 需要)
+            nodeBinPath = "export PATH=\"" + ld1 + ":" + ld2 + ":" + ld3 + ":$PATH\"";
         }
     }
 
@@ -90,40 +123,92 @@ public class ScriptHelper {
     }
 
     public static void startScript() {
-        // Bug 修复:proxy_original 是空格分隔的多源字符串(如默认 "pyncmd kuwo"),作为 -o 参数时必须加引号,
-        // 否则 shell 把第二个源及之后的当作未知位置参数,导致 UnblockNeteaseMusic 报错或只启用第一个源。
+        // 先把状态置 0(启动中),避免旧的 SCRIPT_STATUS=1 导致 ProxyHook 认为已就绪、请求发到死端口
+        ExtraHelper.setExtraDate(ExtraHelper.SCRIPT_STATUS, "0");
+
+        // 代理源参数:空格分隔的多源字符串,shell 传参时需加引号
         String original = SettingHelper.getInstance().getProxyOriginal();
         if (original == null) original = "";
-        // 用单引号包裹并转义内部单引号(若用户输入了),兼容多源
         String quotedOriginal = "'" + original.replace("'", "'\\''") + "'";
-        String script = String.format("export ENABLE_FLAC=%s&&export MIN_BR=%s&&export QQ_COOKIE=\"%s\"&&export MIGU_COOKIE=\"%s\"&&libnode.so app.js -a 127.0.0.1 -o %s -p %s",
-                SettingHelper.getInstance().getSetting(SettingHelper.proxy_flac_key), SettingHelper.getInstance().getSetting(SettingHelper.proxy_priority_key) ? "256000" : "96000",
-                SettingHelper.getInstance().getQqCookie(), SettingHelper.getInstance().getMiguCookie(), quotedOriginal, SettingHelper.getInstance().getProxyPort() + ":" + (SettingHelper.getInstance().getProxyPort() + 1));
 
-        String[] START_PROXY = new String[]{"node=$(ps -ef |grep \"libnode.so app.js\" |grep -v grep)",
-                "if [ ! \"$node\" ]; then",
-                "cd " + scriptPath, nodeLibPath + "&&" + script,
-                "else",
-                "echo \"RESTART\"",
-                "killall -9 libnode.so >/dev/null 2>&1",
-                "fi"};
+        // 端口:HTTP 和 HTTPS(通常 port 和 port+1)。如果端口被占用,简单换个端口再试(两次)
+        int portBase = SettingHelper.getInstance().getProxyPort();
+        String portArg = portBase + ":" + (portBase + 1);
+
+        // 最终启动命令:
+        // 1) 先设好环境变量(LIB + PATH);
+        // 2) 再到脚本目录;
+        // 3) 调 libnode.so app.js,出错时立即输出 ERR: 前缀便于上层捕获
+        String execCmd = String.format(
+                "cd \"%s\" && (%s && %s && export ENABLE_FLAC=\"%s\" && export MIN_BR=\"%s\" && export QQ_COOKIE=\"%s\" && export MIGU_COOKIE=\"%s\" && libnode.so app.js -a 127.0.0.1 -o %s -p %s) || echo ERR:start_failed",
+                scriptPath,
+                nodeLibPath, nodeBinPath,
+                SettingHelper.getInstance().getSetting(SettingHelper.proxy_flac_key),
+                SettingHelper.getInstance().getSetting(SettingHelper.proxy_priority_key) ? "256000" : "96000",
+                SettingHelper.getInstance().getQqCookie(),
+                SettingHelper.getInstance().getMiguCookie(),
+                quotedOriginal,
+                portArg
+        );
+
+        // 先检测是否已有旧进程在跑:有 → 先杀再启动,避免端口占用
+        String[] START_PROXY = new String[]{
+                // 先杀旧进程
+                String.join("\n", STOP_PROXY),
+                // 等端口释放
+                "sleep 0.5",
+                // 再启动
+                execCmd
+        };
+
         Command start = new Command(0, START_PROXY) {
             @Override
             public void commandOutput(int id, String line) {
-                if ((!line.contains("mERROR") && line.contains("Error:")) || line.contains("Port ") || line.contains("Please ")) {
+                // 错误识别:新版 UnblockNeteaseMusic 常见的启动失败/端口占用/源不存在
+                boolean isErr =
+                        (line != null) && (
+                                line.startsWith("ERR:") ||
+                                        (line.contains("Error") && !line.contains("handleError") && !line.contains("retry")) ||
+                                        line.contains("EADDRINUSE") ||
+                                        line.contains("Port") && (line.contains("in use") || line.contains("occupied")) ||
+                                        line.contains("module not found") ||
+                                        line.contains("Cannot find module") ||
+                                        line.contains("SyntaxError") ||
+                                        line.contains("nodename nor servname") ||
+                                        line.contains("getaddrinfo")
+                        );
+
+                if (isErr) {
+                    // 明确失败:把状态置 0,避免 ProxyHook 继续对死端口发请求
+                    ExtraHelper.setExtraDate(ExtraHelper.SCRIPT_STATUS, "0");
                     Intent intent = new Intent(Hook.msg_send_notification);
                     intent.putExtra("message", line);
-                    intent.putExtra("title", "脚本产生如下错误信息，若脚本因此无法运行请提issue");
+                    intent.putExtra("title", "脚本启动/运行错误");
                     if (neteaseContext != null)
                         neteaseContext.sendBroadcast(intent);
-                } else if (line.contains("HTTP Server running")) {
-                    if (neteaseContext != null && ExtraHelper.getExtraDate(ExtraHelper.SCRIPT_STATUS).equals("0"))
+                } else if (line != null && line.contains("HTTP Server running")) {
+                    // 启动成功
+                    if (neteaseContext != null && !"1".equals(ExtraHelper.getExtraDate(ExtraHelper.SCRIPT_STATUS)))
                         Tools.showToastOnLooper(neteaseContext, "UnblockNeteaseMusic运行成功");
                     ExtraHelper.setExtraDate(ExtraHelper.SCRIPT_STATUS, "1");
-                } else if (line.equals("Killed ")) {
-                    if (SettingHelper.getInstance().getSetting(SettingHelper.proxy_master_key))
+                } else if ("Killed ".equals(line) || "Killed".equals(line)) {
+                    // 被系统 OOM/内存回收杀掉 → 主开关开着的话自动重启
+                    ExtraHelper.setExtraDate(ExtraHelper.SCRIPT_STATUS, "0");
+                    if (SettingHelper.getInstance().getSetting(SettingHelper.proxy_master_key)) {
+                        try {
+                            Thread.sleep(800);
+                        } catch (InterruptedException ignored) {
+                        }
                         startScript();
-                } else if (line.equals("RESTART")) {
+                    }
+                }
+                // RESTART 状态分支已删除(现改为"先杀再启",无需依赖外层检测重启)
+            }
+
+            @Override
+            public void commandTerminated(int id, int exitCode) {
+                // 命令终止但没见到 HTTP Server running:状态置 0,标记失败
+                if (!"1".equals(ExtraHelper.getExtraDate(ExtraHelper.SCRIPT_STATUS))) {
                     ExtraHelper.setExtraDate(ExtraHelper.SCRIPT_STATUS, "0");
                 }
             }
