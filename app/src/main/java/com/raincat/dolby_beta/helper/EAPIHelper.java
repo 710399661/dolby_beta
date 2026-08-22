@@ -1,15 +1,15 @@
 package com.raincat.dolby_beta.helper;
 
-import com.google.gson.Gson;
+import android.text.TextUtils;
+
 import com.ndktools.javamd5.core.MD5;
 import com.raincat.dolby_beta.model.CloudHeader;
-import com.raincat.dolby_beta.model.NeteaseSongListBean;
 import com.raincat.dolby_beta.net.Http;
 import com.raincat.dolby_beta.utils.NeteaseAES2;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.regex.Pattern;
@@ -25,7 +25,6 @@ import java.util.regex.Pattern;
  */
 
 public class EAPIHelper {
-    private static final Gson gson = new Gson();
 
     /**
      * 修复 player/url 响应数据的逻辑 bug(不修改付费/权限判定,不绕过版权)。

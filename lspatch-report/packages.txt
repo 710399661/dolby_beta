@@ -1,0 +1,11 @@
+Modules (7):
+  io.github.twyora.douyinenhancer  抖柚
+  com.rong862.bear  逗音小手
+  com.raincat.dolby_beta  杜比大喇叭β
+  cn.alhs.FQKill  番茄通(重构版)
+  com.xposed.douyinhelper  Dou+
+  com.bug.hookvip  Fuck for VIP
+  me.neko.fckvip  Fuck for VIP
+
+Applications (1):
+  com.netease.cloudmusic  网易云音乐
