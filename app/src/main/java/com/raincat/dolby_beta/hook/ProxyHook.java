@@ -81,8 +81,7 @@ public class ProxyHook {
                 String urlStr = urlObj == null ? "" : urlObj.toString();
                 for (String url : whiteUrlList) {
                     if (urlStr.contains(url)) {
-                        boolean isHttps = urlStr.startsWith("https://");
-                        setProxy(context, client, isHttps);
+                        setProxy(context, client);
                         break;
                     }
                 }
@@ -129,12 +128,24 @@ public class ProxyHook {
     }
 
     /**
-     * 设置代理
+     * 设置代理 (本地脚本模式 / 服务器代理模式通用)
      *
-     * @param isHttps 当前请求是否是 https:// URL;
-     *                本地脚本模式下端口分流:HTTP → proxy_port(脚本 HTTP 代理),HTTPS → proxy_port+1(脚本 HTTPS MITM 直连端口)
+     * 致命修复说明(对应"开启音源代理就无法播放、关闭代理能播放"现象):
+     *  1) UnblockNeteaseMusic 自带 server.crt 已过期(notAfter=2023-04-04),
+     *     使用 ca.crt + TrustManagerFactory 的"完整链校验"在 Android 7+ BoringSSL 上会直接抛
+     *     CertPathValidatorException(certificate has expired),
+     *     因此在 ScriptHelper.getSSLSocketFactory 里统一使用 trust-all 的 HTTPSTrustManager。
+     *  2) OkHttp 在"代理 + 自定义 sslSocketFactory"同时启用时,仍会额外做 HostnameVerifier
+     *     校验(CN/SAN=*.music.163.com vs 127.0.0.1 / 服务器 IP 必然不匹配),
+     *     抛出 SSLPeerUnverifiedException,因此这里同步把 OkHttpClient.hostnameVerifier
+     *     替换成 allow-all。关闭代理时还原。
+     *  3) 端口:
+     *     - 本地脚本模式(proxy_server=false):统一用 HTTP 代理端口 proxy_port,
+     *       HTTPS 请求走 CONNECT 隧道后由脚本完成 MITM。
+     *     - 服务器代理模式(proxy_server=true):使用用户配置的 http_proxy + proxy_port(单端口),
+     *       不做 scheme 分流。
      */
-    private void setProxy(Context context, Object client, boolean isHttps) throws Exception {
+    private void setProxy(Context context, Object client) throws Exception {
         //保存正常的代理与SSL
         Field sslSocketFactoryField = client.getClass().getDeclaredField(fieldSSLSocketFactory);
         sslSocketFactoryField.setAccessible(true);
@@ -154,21 +165,9 @@ public class ProxyHook {
             boolean serverMode = SettingHelper.getInstance().getSetting(SettingHelper.proxy_server_key);
             String httpUrlHost = serverMode ?
                     SettingHelper.getInstance().getHttpProxy() : "127.0.0.1";
-            int port;
-            if (serverMode) {
-                // 服务器代理模式:用户自己设置的单端口(可能是 HTTP 代理也可能是 HTTPS 反向代理)
-                port = SettingHelper.getInstance().getProxyPort();
-            } else {
-                // 本地脚本模式:端口与脚本 app.js -p port:port+1 对齐
-                // - HTTP 请求 → HTTP 代理端口 (port): OkHttp 会发 CONNECT / 明文 GET 过去
-                // - HTTPS 请求 → 脚本的 HTTPS MITM 端口 (port+1):
-                //   因为 MITM 场景下 client 是和 "*.music.163.com:443" 做握手,
-                //   OkHttp 的 Tunnel CONNECT + 自定义 sslSocketFactory 在 Android 上经常出现 TLS 不一致,
-                //   更稳妥的做法是用 HTTP Proxy 连接到脚本 HTTPS 监听端口(Tunnel CONNECT 升级后,
-                //   脚本 HTTPS server 会完成 MITM,再交给自定义 trust-all SocketFactory 放行)
-                int proxyPort = SettingHelper.getInstance().getProxyPort();
-                port = isHttps ? proxyPort + 1 : proxyPort;
-            }
+            // 本地脚本模式与服务器代理模式都用单个 HTTP 代理端口;
+            // CONNECT 隧道后脚本/远端服务器自行处理 HTTPS MITM / 上游转发。
+            int port = SettingHelper.getInstance().getProxyPort();
 
             Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(httpUrlHost, port));
             proxyField.set(client, proxy);
