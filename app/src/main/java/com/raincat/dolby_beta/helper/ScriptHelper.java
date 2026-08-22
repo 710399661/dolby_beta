@@ -12,19 +12,13 @@ import com.raincat.dolby_beta.utils.Tools;
 import com.stericson.RootShell.execution.Command;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.security.KeyManagementException;
-import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateFactory;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
 
 /**
  * <pre>
@@ -134,37 +128,24 @@ public class ScriptHelper {
 
     /**
      * 获取CA证书
+     * 说明:
+     *  1) 本地脚本模式(proxy_server=false)下,UnblockNeteaseMusic 的 HTTPS MITM 证书(server.crt)
+     *     在仓库打包时已过期(2023-04-04),使用 ca.crt + TrustManagerFactory 做"完整链校验"
+     *     的实现会在 Android 7+ 的 BoringSSL 上直接触发 CertPathValidatorException: certificate has expired,
+     *     表现为"开启音源代理就无法播放,关闭音源代理恢复正常"。
+     *  2) 服务器代理模式(proxy_server=true)也存在用户自签/过期证书情况。
+     *  因此统一使用 trust-all 的 HTTPSTrustManager,忽略证书有效期与主机名不匹配;
+     *  OkHttp 侧同时在 ProxyHook 里补一个 allowAll HostnameVerifier 做兜底。
      */
     public static SSLSocketFactory getSSLSocketFactory(Context context) {
-        SSLContext sslContext = null;
         try {
-            File ca = new File(getScriptPath(context) + File.separator + "ca.crt");
-            if (!SettingHelper.getInstance().getSetting(SettingHelper.proxy_server_key) && ca.exists()) {
-                InputStream certificate = new FileInputStream(ca);
-                Certificate certificate1 = CertificateFactory.getInstance("X.509").generateCertificate(certificate);
-                KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-                keyStore.load(null, null);
-                keyStore.setCertificateEntry("ca", certificate1);
-                TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-                trustManagerFactory.init(keyStore);
-                sslContext = SSLContext.getInstance("TLS");
-                sslContext.init(null, trustManagerFactory.getTrustManagers(), new SecureRandom());
-            } else {
-                TrustManager[] trustManagers = new TrustManager[]{new HTTPSTrustManager()};
-                try {
-                    sslContext = SSLContext.getInstance("TLS");
-                    sslContext.init(null, trustManagers, new SecureRandom());
-                } catch (NoSuchAlgorithmException | KeyManagementException e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (sslContext != null)
+            TrustManager[] trustManagers = new TrustManager[]{new HTTPSTrustManager()};
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, trustManagers, new SecureRandom());
             return sslContext.getSocketFactory();
-        else
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            e.printStackTrace();
             return null;
+        }
     }
 }
